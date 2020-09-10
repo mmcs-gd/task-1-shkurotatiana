@@ -1,10 +1,26 @@
 const canvas = document.getElementById("cnvs");
+const newGameBtn = document.getElementById("new-game-btn");
+
+// const platformColor = "#b0afb3";
+// const platformBorderColor = "#b0afb3";
+// const platformBorderColor = "#939399";
+
+const platformColor = "#a19da0";
+const platformBorderColor = "#a19da0";
+
+const ballColor = "#e6ca17";
 
 const gameState = {};
 
-const startSpeed = { vx: 1, vy: 1 };
+const startSpeed = { vx: 5, vy: 5 };
 
 const walls = {};
+
+newGameBtn.addEventListener('click', () => {
+  setup();
+  run();
+  newGameBtn.hidden = true;
+})
 
 function onMouseMove(e) {
   gameState.pointer.x = e.pageX;
@@ -63,7 +79,7 @@ const touchMode = { None: 0, Left: 1, Middle: 2, Right: 3 };
 function touchedPlatform() {
   const ball = gameState.ball;
   const player = gameState.player;
-  
+
   const halfW = player.width / 2;
   const halfH = player.height / 2;
   const playerLeftX = player.x - halfW;
@@ -125,35 +141,34 @@ function run(tFrame) {
 
 function stopGame(handle) {
   window.cancelAnimationFrame(handle);
+  newGameBtn.hidden = false;
 }
 
 function drawPlatform(context) {
   const { x, y, width, height } = gameState.player;
   context.beginPath();
   context.rect(x - width / 2, y - height / 2, width, height);
-  context.fillStyle = "#FF0000";
+  context.fillStyle = platformColor;
   context.fill();
+  context.strokeStyle = platformBorderColor;
+  context.lineWidth = 2;
+  context.stroke();
   context.closePath();
-
-  for (var wall in [walls.topWall, walls.rightWall, walls.leftWall]) {
-    context.beginPath();
-    context.rect(
-      wall.x - wall.width / 2,
-      wall.y - wall.height / 2,
-      wall.width,
-      wall.height
-    );
-    context.fillStyle = "orange";
-    context.fill();
-    context.closePath();
-  }
 }
 
 function drawBall(context) {
   const { x, y, radius } = gameState.ball;
+
+  const q = radius / 4;
+  let grad = context.createRadialGradient(x + q, y - q, 1, x, y, radius);
+  grad.addColorStop(0, 'white');
+  grad.addColorStop(1, ballColor);
+  
+  
+
   context.beginPath();
   context.arc(x, y, radius, 0, 2 * Math.PI);
-  context.fillStyle = "#0000FF";
+  context.fillStyle = grad;
   context.fill();
   context.closePath();
 }
@@ -206,5 +221,5 @@ function setup() {
   walls.topWall = { x: canvas.width / 2, y: 0, width: canvas.width, height: 2 };
 }
 
-setup();
-run();
+// setup();
+// run();
