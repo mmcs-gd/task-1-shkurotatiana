@@ -1,18 +1,12 @@
 const canvas = document.getElementById("cnvs");
 const newGameBtn = document.getElementById("new-game-btn");
-
-// const platformColor = "#b0afb3";
-// const platformBorderColor = "#b0afb3";
-// const platformBorderColor = "#939399";
+const scoreDiv = document.getElementById("score");
 
 const platformColor = "#a19da0";
 const platformBorderColor = "#a19da0";
-
 const ballColor = "#e6ca17";
 
 const gameState = {};
-
-const startSpeed = { vx: 5, vy: 5 };
 
 const walls = {};
 
@@ -50,8 +44,8 @@ function update(tick) {
 
   setBallSpeed();
   const ball = gameState.ball;
-  ball.y += ball.vy;
-  ball.x += ball.vx;
+  ball.y += ball.vy * gameState.speed.vy;
+  ball.x += ball.vx * gameState.speed.vx;
 }
 
 function touchedTop() {
@@ -140,8 +134,10 @@ function run(tFrame) {
 }
 
 function stopGame(handle) {
-  window.cancelAnimationFrame(handle);
   newGameBtn.hidden = false;
+  window.cancelAnimationFrame(handle);
+  window.clearInterval(gameState.scoreTimer);
+  window.clearInterval(gameState.speedTimer);  
 }
 
 function drawPlatform(context) {
@@ -176,12 +172,26 @@ function drawBall(context) {
 function setup() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  scoreDiv.innerText = 0;
 
   canvas.addEventListener("mousemove", onMouseMove, false);
 
   gameState.lastTick = performance.now();
   gameState.lastRender = gameState.lastTick;
   gameState.tickLength = 15; //ms
+
+  gameState.score = 0;
+  gameState.speed = { vx: 5, vy: 5 };
+
+  gameState.scoreTimer = window.setInterval(() => {
+    gameState.score += 1;
+    scoreDiv.innerText = gameState.score;
+  }, 1000);
+
+  gameState.speedTimer = window.setInterval(() => {
+    gameState.speed.vx *= 1.1;
+    gameState.speed.vy *= 1.1;
+  }, 15000);
 
   const platform = {
     width: 400,
@@ -202,8 +212,8 @@ function setup() {
     x: canvas.width / 2,
     y: 0,
     radius: 25,
-    vx: startSpeed.vx,
-    vy: startSpeed.vy,
+    vx: 1,
+    vy: 1,
   };
 
   walls.leftWall = {
