@@ -2,20 +2,31 @@ const canvas = document.getElementById("cnvs");
 const newGameBtn = document.getElementById("new-game-btn");
 const scoreDiv = document.getElementById("score");
 
-const platformColor = "#a19da0";
-const platformBorderColor = "#a19da0";
-const ballColor = "#e6ca17";
+//#region Colors
+const PLATFORM_COLOR = "#a19da0";
+const PLATFORM_BORDER_COLOR = "#a19da0";
+const BALL_COLOR = "#e6ca17";
 
-const bonusColors = [
-  '#a3ff9e', '#85ff85', '#70ff7e', '#5cff7d', '#47ff7e', '#2cf57d', '#12eb7f',
-  '#2cf57d', '#47ff7e', '#5cff7d', '#70ff7e', '#85ff85'
+const BONUS_COLORS = [
+  "#a3ff9e",
+  "#85ff85",
+  "#70ff7e",
+  "#5cff7d",
+  "#47ff7e",
+  "#2cf57d",
+  "#12eb7f",
+  "#2cf57d",
+  "#47ff7e",
+  "#5cff7d",
+  "#70ff7e",
+  "#85ff85",
 ];
-
 let curBonusColor = 0;
+//#endregion
+
+const TOTAL_BALL_START_SPEED = 7;
 
 const gameState = {};
-
-const walls = {};
 
 newGameBtn.addEventListener("click", () => {
   setup();
@@ -49,11 +60,14 @@ function draw(tFrame) {
 function moveBonus() {
   const bonus = gameState.bonus;
 
-  if (Math.abs(bonus.x - bonus.nextX) < 0.1 || Math.abs(bonus.y - bonus.nextY) < 0.1) {
+  if (
+    Math.abs(bonus.x - bonus.nextX) < 0.1 ||
+    Math.abs(bonus.y - bonus.nextY) < 0.1
+  ) {
     bonus.nextX = bonus.getNextX();
-    bonus.nextY = bonus.getNextY();    
+    bonus.nextY = bonus.getNextY();
     bonus.vx = (bonus.nextX - bonus.x) / 70;
-    bonus.vy = (bonus.nextY - bonus.y) / 70;  
+    bonus.vy = (bonus.nextY - bonus.y) / 70;
   }
 
   bonus.x += bonus.vx;
@@ -64,35 +78,44 @@ function moveBonus() {
 
 function update(tick) {
   const vx = (gameState.pointer.x - gameState.player.x) / 10;
+  gameState.player.prevX = gameState.player.x;
   gameState.player.x += vx;
 
-  setBallSpeed();
-  const ball = gameState.ball;
-  ball.y += ball.vy;
-  ball.x += ball.vx;
+  moveBall();
 
   if (gameState.bonus.isActive) {
     moveBonus();
   }
 }
 
-function setBallSpeed() {
+function moveBall() {
   const ball = gameState.ball;
-  if (ball.touchedTop()) {
-    ball.vy *= -1;
-  }
-  if (ball.touchedLeft()) {
-    ball.vx *= -1;
-  }
-  if (ball.touchedRight()) {
-    ball.vx *= -1;
-  }
-  if (ball.vy > 0 && ball.touchedPlatform()) {
-    ball.vy *= -1;
-  }
+
   if (ball.touchedBottom()) {
     stopGame(gameState.stopCycle);
+  } else if (ball.touchedTop()) {
+    ball.vy *= -1;
+  } else if (ball.touchedLeft() || ball.touchedRight()) {
+    ball.vx *= -1;
+  } else {
+    if (ball.vy > 0 && ball.touchedPlatform()) {
+      setBallSpeed();
+    }
   }
+
+  ball.y += ball.vy;
+  ball.x += ball.vx;
+}
+
+function setBallSpeed() {
+  const ball = gameState.ball;
+  let platformVx = gameState.player.x - gameState.player.prevX;
+  const minSpeed = 10;
+  if (Math.abs(platformVx) > minSpeed) {
+    platformVx = minSpeed * Math.sign(platformVx);
+  }
+  ball.vx = ball.vx + platformVx; 
+  ball.vy *= -1;
 }
 
 function run(tFrame) {
@@ -116,16 +139,16 @@ function stopGame(handle) {
   window.clearInterval(gameState.scoreTimer);
   window.clearInterval(gameState.speedTimer);
   window.clearInterval(gameState.bonusTimer);
-  window.clearInterval(gameState.bonusColorTimer); 
+  window.clearInterval(gameState.bonusColorTimer);
 }
 
 function drawPlatform(context) {
   const { x, y, width, height } = gameState.player;
   context.beginPath();
   context.rect(x - width / 2, y - height / 2, width, height);
-  context.fillStyle = platformColor;
+  context.fillStyle = PLATFORM_COLOR;
   context.fill();
-  context.strokeStyle = platformBorderColor;
+  context.strokeStyle = PLATFORM_BORDER_COLOR;
   context.lineWidth = 2;
   context.stroke();
   context.closePath();
@@ -137,7 +160,7 @@ function drawBall(context) {
   const q = radius / 4;
   let grad = context.createRadialGradient(x + q, y - q, 1, x, y, radius);
   grad.addColorStop(0, "white");
-  grad.addColorStop(1, ballColor);
+  grad.addColorStop(1, BALL_COLOR);
 
   context.beginPath();
   context.arc(x, y, radius, 0, 2 * Math.PI);
@@ -154,7 +177,7 @@ function drawBonus(context) {
     context.beginPath();
     context.rect(x - tailSize * 0.5, y - tailSize * 1.5, tailSize, size);
     context.rect(x - tailSize * 1.5, y - tailSize * 0.5, size, tailSize);
-    context.fillStyle = bonusColors[curBonusColor];
+    context.fillStyle = BONUS_COLORS[curBonusColor];
     context.fill();
   }
 }
@@ -162,6 +185,17 @@ function drawBonus(context) {
 function increaseScore(value) {
   gameState.score += value;
   scoreDiv.innerText = gameState.score;
+}
+
+function getRandomFromRange(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function getBallStartSpeed() {
+  const angle = (getRandomFromRange(10, 60) * 180) / Math.PI;
+  const vx = TOTAL_BALL_START_SPEED * Math.sin(angle);
+  const vy = TOTAL_BALL_START_SPEED * Math.cos(angle);
+  return { vx, vy };
 }
 
 function setup() {
@@ -187,6 +221,7 @@ function setup() {
     y: canvas.height - platform.height / 2,
     width: platform.width,
     height: platform.height,
+    prevX: 100
   };
 
   gameState.pointer = {
@@ -194,12 +229,13 @@ function setup() {
     y: 0,
   };
 
+  const speed = getBallStartSpeed();
   gameState.ball = {
-    x: canvas.width / 2,
+    x: Math.random() * canvas.width,
     y: 0,
     radius: 25,
-    vx: 5,
-    vy: 5,
+    vx: speed.vx,
+    vy: speed.vy,
 
     touchedTop: () => {
       const ball = gameState.ball;
@@ -231,11 +267,11 @@ function setup() {
       const playerRightX = player.x + halfW;
       const playerTopY = player.y - halfH;
 
+      // ball is above the platform
       if (ball.x >= playerLeftX && ball.x <= playerRightX) {
         const dist = playerTopY - ball.y;
-        if (dist <= ball.radius) {
-          return true;
-        }
+        return dist <= ball.radius;
+      // ball is touching left/right side of a platform
       } else if (ball.y < playerTopY && playerTopY - ball.y < ball.radius) {
         const distY = playerTopY - ball.y;
         let distX = 0;
@@ -256,9 +292,12 @@ function setup() {
     y: 0,
     size: 50,
     getNextX: () => {
-      let random = gameState.bonus.x + (Math.random() > 0.5 ? 1 : -1) * canvas.width / 5;
+      let random =
+        gameState.bonus.x + ((Math.random() > 0.5 ? 1 : -1) * canvas.width) / 5;
       while (random < 0 || random > canvas.width) {
-        random = gameState.bonus.x + (Math.random() > 0.5 ? 1 : -1) * canvas.width / 5;
+        random =
+          gameState.bonus.x +
+          ((Math.random() > 0.5 ? 1 : -1) * canvas.width) / 5;
       }
       return random;
     },
@@ -290,15 +329,23 @@ function setup() {
       const playerLeftX = player.x - halfW;
       const playerRightX = player.x + halfW;
       const playerTopY = player.y - halfH;
-      
+
       // lower square touched the platform
-      if (bottomY >= playerTopY && bottomX1 > playerLeftX && bottomX2 < playerRightX) {
+      if (
+        bottomY >= playerTopY &&
+        bottomX1 > playerLeftX &&
+        bottomX2 < playerRightX
+      ) {
         bonus.isActive = false;
         increaseScore(15);
         return;
       }
       // left square touched the platform
-      if (sideY >= playerTopY && leftX < playerRightX && rightX > playerRightX) {
+      if (
+        sideY >= playerTopY &&
+        leftX < playerRightX &&
+        rightX > playerRightX
+      ) {
         bonus.isActive = false;
         increaseScore(15);
         return;
@@ -309,7 +356,7 @@ function setup() {
         increaseScore(15);
         return;
       }
-    }
+    },
   };
 
   gameState.scoreTimer = window.setInterval(() => {
@@ -322,18 +369,18 @@ function setup() {
   }, 15000);
 
   gameState.bonusTimer = window.setInterval(() => {
-    if (! gameState.bonus.isActive) {
-    gameState.bonus.isActive = true;
-    gameState.bonus.x = Math.random() * canvas.width;
-    gameState.bonus.y = 0;
-    gameState.bonus.nextX = gameState.bonus.x;
-    gameState.bonus.nextY = 0;
+    if (!gameState.bonus.isActive) {
+      gameState.bonus.isActive = true;
+      gameState.bonus.x = Math.random() * canvas.width;
+      gameState.bonus.y = 0;
+      gameState.bonus.nextX = gameState.bonus.x;
+      gameState.bonus.nextY = 0;
     }
   }, 15000);
 
   gameState.bonusColorTimer = window.setInterval(() => {
     curBonusColor += 1;
-    if (curBonusColor >= bonusColors.length) {
+    if (curBonusColor >= BONUS_COLORS.length) {
       curBonusColor = 0;
     }
   }, 200);
