@@ -31,7 +31,7 @@ const gameState = {};
 newGameBtn.addEventListener("click", () => {
   setup();
   run();
-  newGameBtn.hidden = true;
+  newGameBtn.style.display = "none";
 });
 
 function onMouseMove(e) {
@@ -123,7 +123,8 @@ function run(tFrame) {
 }
 
 function stopGame(handle) {
-  newGameBtn.hidden = false;
+  newGameBtn.style.display = "block";
+
   window.cancelAnimationFrame(handle);
   window.clearInterval(gameState.scoreTimer);
   window.clearInterval(gameState.speedTimer);
@@ -181,7 +182,7 @@ function getRandomFromRange(min, max) {
 }
 
 function getBallStartSpeed() {
-  const angle = (getRandomFromRange(30, 60) * 180) / Math.PI;
+  const angle = (getRandomFromRange(0, 60) * Math.PI) / 180;
   const vx = TOTAL_BALL_START_SPEED * Math.sin(angle);
   const vy = TOTAL_BALL_START_SPEED * Math.cos(angle);
   return { vx, vy };
@@ -285,7 +286,6 @@ function setup() {
       angle = Math.atan(Math.abs(tmpVy) / Math.abs(tmpVx));
       ball.vx = total * Math.cos(angle) * Math.sign(tmpVx);
       ball.vy = total * Math.sin(angle) * Math.sign(tmpVy);
-      console.log(ball.vx, ball.vy)
     }
   };
 
@@ -365,8 +365,8 @@ function setup() {
   }, 1000);
 
   gameState.speedTimer = window.setInterval(() => {
-    gameState.ball.vx *= 1.2;
-    gameState.ball.vy *= 1.2;
+    gameState.ball.vx *= 1.3;
+    gameState.ball.vy *= 1.3;
   }, 30000);
 
   gameState.bonusTimer = window.setInterval(() => {
