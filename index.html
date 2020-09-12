@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-	<title>Ping Pong Test</title>
-	<meta charset="UTF-8" />
+  <title>Ping Pong Test</title>
+  <meta charset="UTF-8" />
   <style>
-    * { 
-        margin:0; 
-        padding:0; 
-        /* font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;  */
-        /* font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; */
-        font-family: cursive;
-      }
-    html, body { 
-      width:100%; 
-      height:100%; 
-      font-size: 12pt;
-      background: linear-gradient(0deg, rgba(2,0,36,1) 0%, rgba(58,17,84,1) 65%, rgba(85,44,110,1) 100%);
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: cursive;
     }
-    canvas { display:block; }
-    #new-game-btn {
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      font-size: 12pt;
+      background: linear-gradient(0deg, rgba(2, 0, 36, 1) 0%, rgba(58, 17, 84, 1) 65%, rgba(85, 44, 110, 1) 100%);
+    }
+    canvas {
+      display: block;
+    }
+    .btn-container {
       position: absolute;
-      top: 20vh;
-      left: 40vw;
+      top: 30vh;
+      left: 0;
+      width: 100%;
+    }
+    #new-game-btn {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      
       width: 200px;
       height: 50px;
       font-size: 1.6rem;
@@ -36,24 +45,37 @@
       outline: none;
       background-color: #e6e6e6;
     }
-    
-    #score {
+    .container {
       position: absolute;
+      left: 10px;
+      top: 10px;
+    }
+    #score {
+      display: inline;
       font-size: 2rem;
       font-weight: 600;
       color: white;
-      left: 10px;
-      top: 5px;
-      
     }
-
+    #score-anim {
+      margin-left: 10px;
+      font-size: 2.1rem;
+      font-weight: 600;
+      color: #12eb7f;
+      transition: all 1s ease-out;
+    }
   </style>
 </head>
 
 <body>
-  <div id="score"></div>
-  <button id="new-game-btn">New game</button>
-	<canvas width="100%" height="100%" id='cnvs'></canvas>
-	<script src="./src/index.js"></script>
+  <div class="container">
+    <div id="score"></div>
+    <span id="score-anim"></span>
+  </div>
+  <div class="btn-container">
+    <button id="new-game-btn">New game</button>
+  </div>
+  <canvas width="100%" height="100%" id='cnvs'></canvas>
+  <script src="./src/index.js"></script>
 </body>
+
 </html>
